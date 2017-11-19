@@ -14,6 +14,13 @@ def train_test_split(d, split=0.7):
       result[key + "_test"] = x[indices[N*split:]]
     return result
 
+def flatten_nested_list(d):
+  result = []
+  for i,row in enumerate(d):
+    _row = [[i, tup[1]] for tup in row]
+    result.extend(_row)
+  return np.array(result)
+
 def feature_normalize(dataset):
     mu = np.mean(dataset,axis=0)
     sigma = np.std(dataset,axis=0)
