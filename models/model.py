@@ -11,10 +11,10 @@ class TFModel():
     self.pred = tf.add(tf.matmul(self.inputs['x'], self.W), self.b)
     self.loss = tf.reduce_mean(tf.square(self.inputs['y']-self.pred))
     self.op = tf.train.GradientDescentOptimizer(alpha)
-    self.train_op = self.op.minimize(self.loss)
-    self.sess = tf.Session()
     
   def initialize(self):
+    self.train_op = self.op.minimize(self.loss)
+    self.sess = tf.Session()
     self.sess.run(tf.global_variables_initializer())
     
   def translate_feed(self, input_map):
@@ -38,18 +38,3 @@ class TFModel():
     _feed = self.translate_feed(feed)
     return self.sess.run([self.W, self.b], feed_dict=_feed)
   
-  def _activation_fn(self, activation):
-    # Does nothing, identity function
-    if activation == None:
-      return lambda x: x
-    elif activation == 'relu':
-      return tf.nn.relu
-    elif activation == 'relu6':
-      return tf.nn.relu6
-    elif activation == 'sigmoid':
-      return tf.sigmoid
-    elif activation == 'tanh':
-      return tf.tanh
-    else:
-      raise ValueError("Activation %s not recognized!" % activation)
-    
