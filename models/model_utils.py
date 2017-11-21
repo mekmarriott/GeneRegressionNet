@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 def optimization_fn(opt, alpha=0.001):
-  if opt == 'sgd' or opt == None:
+  if opt == 'sgd' or opt is None:
     return tf.train.GradientDescentOptimizer(alpha)
   elif opt == 'adam':
     return tf.train.GradientDescentOptimizer(alpha)
@@ -12,8 +12,8 @@ def optimization_fn(opt, alpha=0.001):
 
 def activation_fn(activation):
   # Does nothing, identity function
-  if activation == None:
-    return lambda x: x
+  if activation is None:
+    return tf.identity
   elif activation == 'relu':
     return tf.nn.relu
   elif activation == 'relu6':

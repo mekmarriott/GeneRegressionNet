@@ -1,5 +1,6 @@
-import model
 import tensorflow as tf
+import sys
+from model import TFModel
 
 class TFLinearModel(TFModel):
   
@@ -12,4 +13,8 @@ class TFLinearModel(TFModel):
     # Non-survival loss - if the person is dead (d = 1) apply L2 loss
     non_survival_loss = tf.square(self.inputs['y']-self.pred)
     # Restructure loss as a function of 'd', survival
-    self.loss = tf.reduce_mean(tf.multiply(1-self.inputs['d'], survival_loss) + tf.multiply(self.inputs['d'], non_survival_loss))
+    if sys.version_info.major > 2:
+      loss = tf.multiply(1-self.inputs['d'], survival_loss) + tf.multiply(self.inputs['d'], non_survival_loss)
+    else:
+      loss = tf.mul(1-self.inputs['d'], survival_loss) + tf.mul(self.inputs['d'], non_survival_loss)
+    self.loss = tf.reduce_mean(loss)
