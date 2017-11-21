@@ -1,4 +1,5 @@
 import tensorflow as tf
+import sys
 
 class TFModel():
   def __init__(self, num_features, alpha=0.1):
@@ -15,7 +16,10 @@ class TFModel():
   def initialize(self):
     self.train_op = self.op.minimize(self.loss)
     self.sess = tf.Session()
-    self.sess.run(tf.global_variables_initializer())
+    if sys.version_info.major > 2:
+      self.sess.run(tf.global_variables_initializer())
+    else:
+      self.sess.run(tf.initialize_all_variables())
     
   def translate_feed(self, input_map):
     feed = {}
