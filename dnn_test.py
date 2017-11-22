@@ -23,7 +23,7 @@ if __name__ == "__main__":
     dataset = training_utils.train_test_split({'x': X, 'y': Y, 'd': D}, split=0.8)
     print("Dataset contains the following:")
     for key in dataset:
-      print key, dataset[key].shape
+      print(key, dataset[key].shape)
     train_feed = {
       key.split('_')[0] : dataset[key]
       for key in dataset if 'train' in key
@@ -55,6 +55,6 @@ if __name__ == "__main__":
 
     print("*"*40)
     if abs(linear_train_loss - dnn_train_loss) < 1e-10 and linear_test_loss > linear_train_loss and dnn_test_loss > dnn_train_loss:
-      print "PASS: Linear and DNN-linear models achieved same (zero) training error and overfit"
+      print("PASS: Linear and DNN-linear models achieved same (zero) training error and overfit")
     else:
-      print "FAIL: Linear and DNN-linear models did not behave as expected"
+      print("FAIL: Linear and DNN-linear models did not behave as expected")

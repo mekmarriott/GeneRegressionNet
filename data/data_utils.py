@@ -103,7 +103,7 @@ def process_patient_data(cancer):
   one_hot, label_years, label_survival = [], [], []
   for pid in patient_survival:
     if pid not in patient_mutations:
-        print "Patient %s not found in mutation information" % pid
+        print("Patient %s not found in mutation information" % pid)
         continue
     one_hot.append(np.array(patient_mutations[pid]))
     label_years.append(patient_survival[pid][0])

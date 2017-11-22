@@ -23,7 +23,7 @@ if __name__ == "__main__":
     dataset = training_utils.train_test_split({'x': X, 'y': Y}, split=0.8)
     print("Dataset contains the following:")
     for key in dataset:
-      print key, dataset[key].shape 
+      print(key, dataset[key].shape)
     train_feed = {
       key.split('_')[0] : dataset[key]
       for key in dataset if 'train' in key
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     regr.fit(dataset['x_train'], dataset['y_train'])
     pred_y = regr.predict(dataset['x_train'])
     sklearn_train_loss = metrics.mean_squared_error(dataset['y_train'], pred_y)
-    print "Loss of linear regression is ", sklearn_train_loss
+    print("Loss of linear regression is ", sklearn_train_loss)
 
     print("*"*40)
     if abs(tf_train_loss - sklearn_train_loss):

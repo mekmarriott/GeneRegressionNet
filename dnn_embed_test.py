@@ -24,7 +24,7 @@ if __name__ == "__main__":
     dataset = training_utils.train_test_split({'x': X, 'y': Y, 'd': D}, split=0.8)
     print("Dataset contains the following:")
     for key in dataset:
-      print key, dataset[key].shape
+      print(key, dataset[key].shape)
     print("Embedding is size: ", E.shape)
     train_feed = {
       key.split('_')[0] : dataset[key]
@@ -51,4 +51,3 @@ if __name__ == "__main__":
     embed_train_loss = m.test(train_feed)
     embed_test_loss = m.test(test_feed)
     print("DNN Embedding Model train loss is %.6f and test loss is %.6f" % (embed_train_loss, embed_test_loss))
-
