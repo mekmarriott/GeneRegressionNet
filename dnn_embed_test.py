@@ -4,11 +4,11 @@ from models.dnn_embed import TFDNNEmbeddingModel
 import training_utils
 
 CANCERS = ['gbm']
-DATA_DIR = 'data/dummy_patient' # switch to data/dummy_patient if you don't have access to patient data
+DATA_DIR = 'data/patient' # switch to data/dummy_patient if you don't have access to patient data
 SEED = 0
 NUM_ITERATIONS = 2000
-# EMBEDDING = 'embedding_gene_gene_interaction'
-EMBEDDING = 'dummy_embedding'
+EMBEDDING = 'embedding_gene_gene_interaction'
+# EMBEDDING = 'dummy_embedding'
 if __name__ == "__main__":
 
   np.random.seed(SEED)
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     print("#### CANCER - %s ####" % cancer)
 
     print("Setting Up .... Loading data")
-    X = np.load("%s/%s/sparse.npy" % (DATA_DIR, cancer))
+    X = np.load("%s/%s/sparse.npy" % (DATA_DIR, cancer), encoding='bytes')
     Y = np.load("%s/%s/labels.npy" % (DATA_DIR, cancer))
     D = np.load("%s/%s/survival.npy" % (DATA_DIR, cancer))
     E = np.load("%s/%s/%s.npy" % (DATA_DIR, cancer, EMBEDDING))

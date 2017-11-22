@@ -32,7 +32,8 @@ class TFModel():
     _feed = self.translate_feed(feed)
     for step in range(num_iterations):
       _, intermediate_loss = self.sess.run([self.train_op, self.loss], feed_dict=_feed)
-      if debug and step%100==0: print "Step: %d: %f" % (step, intermediate_loss)
+      if debug and step%100==0:
+        print("Step: %d: %f" % (step, intermediate_loss))
   
   def test(self, feed):
     _feed = self.translate_feed(feed)

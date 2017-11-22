@@ -1,7 +1,7 @@
 import sys
-import model_utils
+from models import model_utils
 import tensorflow as tf
-from model import TFModel
+from models.model import TFModel
 
 class TFDNNEmbeddingModel(TFModel):
   def __init__(self, embed_shape, alpha=0.001, layer_dims=[], combiner='mean', opt='sgd', activation=None):
@@ -19,11 +19,9 @@ class TFDNNEmbeddingModel(TFModel):
     # Create sparse input
     weights = tf.cast(tf.ones([embed_shape[0]]), tf.int64)
     sparse_input = tf.SparseTensor(self.inputs['x'], weights, self.inputs['x_shape'])
-    print sparse_input
     
     # Look up embeddings from one hot encodings
     self.embed_input = tf.nn.embedding_lookup_sparse(self.inputs['embed'], sparse_input, None, combiner=combiner)
-    print self.embed_input
     self.layer_inputs = {
         0: self.embed_input
     }

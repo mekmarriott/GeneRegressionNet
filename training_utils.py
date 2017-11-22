@@ -27,7 +27,7 @@ def train_test_split(d, split=0.7, sparse_keys=[]):
     assert len(d) > 0, "Must have at least one key/entry for the dataset"
     for key in d:
     	assert type(d[key]).__module__ == np.__name__, "Must pass in a numpy array type!"
-    N = len(d.values()[0])
+    N = len(list(d.values())[0])
     indices = np.random.permutation(N)
     split_idx = int(N*split)
     assert split_idx > 0 and split_idx < N, "Split index cannot leave empty training or test set - split index is %d, split is %f, and the size to split is %d" % (split_idx, split, N)

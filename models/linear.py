@@ -1,6 +1,6 @@
 import tensorflow as tf
 import sys
-from model import TFModel
+from models.model import TFModel
 
 class TFLinearModel(TFModel):
   

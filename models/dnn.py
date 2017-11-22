@@ -1,7 +1,7 @@
 import tensorflow as tf
 import sys
-from model import TFModel
-import model_utils
+from models.model import TFModel
+from models import model_utils
 
 class TFDNNModel(TFModel):
   def __init__(self, num_features, alpha=0.001, layer_dims=[], opt='sgd', activation=None):

@@ -12,7 +12,7 @@ if __name__ == "__main__":
     print("Processing patient data for cancer %s" % cancer)
     genes, one_hot, label_years, label_survival = data_utils.process_patient_data(cancer)
     sparse = data_utils.sparsify(one_hot)
-
+    print(type(sparse))
     np.save('%s/%s/sparse.npy' % (WRITE_DATA_DIR, cancer), sparse)
     np.save('%s/%s/one_hot.npy' % (WRITE_DATA_DIR, cancer), one_hot)
     np.save('%s/%s/labels.npy' % (WRITE_DATA_DIR, cancer), label_years)
