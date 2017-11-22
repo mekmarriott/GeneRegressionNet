@@ -1,24 +1,24 @@
-from model import TFModel
+import sys
 import model_utils
 import tensorflow as tf
+from model import TFModel
 
 class TFDNNEmbeddingModel(TFModel):
-  def __init__(self, num_features, embed_sz, alpha=0.001, layer_dims=[], combiner='mean', opt='sgd', activation=None):
+  def __init__(self, embed_shape, alpha=0.001, layer_dims=[], combiner='mean', opt='sgd', activation=None):
     # Inherit all self attributes
-    TFModel.__init__(self, embed_sz, alpha=alpha)
+    TFModel.__init__(self, embed_shape[1], alpha=alpha)
     self.inputs['x'] = tf.placeholder(tf.int64, [None, 2]) # two is the number of dimensions in tuple (example_idx, gene_idx)
+    self.inputs['x_shape'] = tf.placeholder(tf.int64, [2,]) # the shape of the dense representation of x
     self.inputs['d'] = tf.placeholder(tf.float32, [None, 1])
-    self.inputs['embed'] = tf.placeholder(tf.float32, [num_features, embed_sz]) 
+    self.inputs['embed'] = tf.placeholder(tf.float32, embed_shape) 
     
-    layers = [embed_sz] + layer_dims + [1]
+    layers = [embed_shape[1]] + layer_dims + [1]
     self.W = {}
     self.b = {}
     
     # Create sparse input
-    num_indices = tf.shape(self.inputs['x'])[0]
-    num_examples = tf.shape(self.inputs['y'])[0]
-    weights = tf.cast(tf.ones([num_indices,]), tf.int32)
-    sparse_input = tf.SparseTensor(indices=self.inputs['x'], values=weights, dense_shape=tf.cast([num_examples, num_features], tf.int64))
+    weights = tf.cast(tf.ones([embed_shape[0]]), tf.int64)
+    sparse_input = tf.SparseTensor(self.inputs['x'], weights, self.inputs['x_shape'])
     print sparse_input
     
     # Look up embeddings from one hot encodings

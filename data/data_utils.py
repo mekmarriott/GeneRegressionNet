@@ -35,12 +35,20 @@ def dummy_dataset_sparse_embed(num_examples, num_features, embed_sz, seed=0):
   return np.array(X), Y, D, embeddings
 
 # Take dictionary of patient -> custom id (one hot) and create a sparse embedding from it
-def sparsify(M):
+def sparsify(M, nested=True):
   result = []
   for i in range(len(M)):
-    for element in M[i]:
-      if element > 0:
-        result.append([i,element])
+    row = []
+    for j, element in enumerate(M[i]):
+      if element == 0:
+        continue
+      if nested:
+        row.append(j)
+      else:
+        result.append(np.array([i,j]))
+    if nested:
+      result.append(np.array(row))
+  return np.array(result)
 
 def create_reduced_embeddings(embedding, dimension_mapping, genes):
   # Create lookup from custom ids to embeddings
