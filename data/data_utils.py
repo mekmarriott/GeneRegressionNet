@@ -11,23 +11,12 @@ def dummy_dataset(num_examples, num_features, seed=0):
     D = (2*np.random.rand(num_examples,1)).astype('int32')
     return X, Y, D
 
-def dummy_dataset_embed(num_examples, num_features, embed_sz, seed=0):
-    np.random.seed(seed)
-    X = np.zeros([num_examples, num_features])
-    Y = (100*np.random.rand(num_examples,1)).astype('int32')
-    D = (2*np.random.rand(num_examples,1)).astype('int32')
-    # Create embeddings for each gene/feature that is a random uniform vector of size embed_sz
-    embeddings = np.random.uniform(size=[num_features, embed_sz])
-    return X, Y, D, embeddings
-
 def dummy_dataset_sparse_embed(num_examples, num_features, embed_sz, seed=0):
   np.random.seed(seed)
   X = []
   for i in range(num_examples):
-    row = []
     for _ in range(np.random.randint(1,30)):
-      row.append(np.array([i, np.random.randint(num_features)]))
-    X.append(np.array(row))
+      X.append(np.array([i, np.random.randint(num_features)]))
   Y = (100*np.random.rand(num_examples,1)).astype('int32')
   D = (2*np.random.rand(num_examples,1)).astype('int32')
   # Create embeddings for each gene/feature that is a random uniform vector of size embed_sz
@@ -35,7 +24,7 @@ def dummy_dataset_sparse_embed(num_examples, num_features, embed_sz, seed=0):
   return np.array(X), Y, D, embeddings
 
 # Take dictionary of patient -> custom id (one hot) and create a sparse embedding from it
-def sparsify(M, nested=True):
+def sparsify(M, nested=False):
   result = []
   for i in range(len(M)):
     row = []

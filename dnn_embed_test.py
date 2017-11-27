@@ -3,10 +3,11 @@ import numpy as np
 from models.dnn_embed import TFDNNEmbeddingModel
 import training_utils
 
+ALPHA = 0.01
 CANCERS = ['gbm']
 DATA_DIR = 'data/patient' # switch to data/dummy_patient if you don't have access to patient data
 SEED = 0
-NUM_ITERATIONS = 2000
+NUM_ITERATIONS = 5000
 EMBEDDING = 'embedding_gene_gene_interaction'
 # EMBEDDING = 'dummy_embedding'
 if __name__ == "__main__":
@@ -16,12 +17,12 @@ if __name__ == "__main__":
     print("#### CANCER - %s ####" % cancer)
 
     print("Setting Up .... Loading data")
-    X = np.load("%s/%s/sparse.npy" % (DATA_DIR, cancer), encoding='bytes')
+    X = np.load("%s/%s/sparse.npy" % (DATA_DIR, cancer))
     Y = np.load("%s/%s/labels.npy" % (DATA_DIR, cancer))
     D = np.load("%s/%s/survival.npy" % (DATA_DIR, cancer))
     E = np.load("%s/%s/%s.npy" % (DATA_DIR, cancer, EMBEDDING))
     embed_shape = E.shape
-    dataset = training_utils.train_test_split({'x': X, 'y': Y, 'd': D}, split=0.8)
+    dataset = training_utils.train_test_split({'x': X, 'y': Y, 'd': D}, split=0.8, sparse_keys=['x'])
     print("Dataset contains the following:")
     for key in dataset:
       print(key, dataset[key].shape)
@@ -36,16 +37,12 @@ if __name__ == "__main__":
     }
 
     train_feed['embed'] = E
-    train_feed['x'] = training_utils.flatten_nested_list(train_feed['x'])
-    train_feed['x_shape'] = [train_feed['y'].shape[0], embed_shape[0]]
     test_feed['embed'] = E
-    test_feed['x'] = training_utils.flatten_nested_list(test_feed['x'])
-    test_feed['x_shape'] = [test_feed['y'].shape[0], embed_shape[0]]
     print("*"*40)
 
     # Check that simple TFDNNEmbeddingModel has a better test error than the linear and simple DNN models without embeddings
     print("Testing custom loss on DNN Embedding Tensorflow Model using %s" % EMBEDDING)
-    m = TFDNNEmbeddingModel(embed_shape, alpha=0.001)
+    m = TFDNNEmbeddingModel(embed_shape, alpha=ALPHA, combiner=None)
     m.initialize()
     m.train(train_feed, num_iterations=NUM_ITERATIONS, debug=True)
     embed_train_loss = m.test(train_feed)

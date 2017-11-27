@@ -4,11 +4,13 @@ import tensorflow as tf
 from models.model import TFModel
 
 class TFDNNEmbeddingModel(TFModel):
-  def __init__(self, embed_shape, alpha=0.001, layer_dims=[], combiner='mean', opt='sgd', activation=None):
+  def __init__(self, embed_shape, alpha=0.001, layer_dims=[], combiner=None, opt='sgd', activation=None):
     # Inherit all self attributes
     TFModel.__init__(self, embed_shape[1], alpha=alpha)
-    self.inputs['x'] = tf.placeholder(tf.int64, [None, 2]) # two is the number of dimensions in tuple (example_idx, gene_idx)
-    self.inputs['x_shape'] = tf.placeholder(tf.int64, [2,]) # the shape of the dense representation of x
+    del self.inputs['x']
+    self.inputs['x-indices'] = tf.placeholder(tf.int64, [None, 1]) # the number of dimensions for the patient index
+    self.inputs['x-shape'] = tf.placeholder(tf.int64, [1]) # the number of indices
+    self.inputs['x-values'] = tf.placeholder(tf.int64, [None]) # the number of values correpsonding to x-indices
     self.inputs['d'] = tf.placeholder(tf.float32, [None, 1])
     self.inputs['embed'] = tf.placeholder(tf.float32, embed_shape) 
     
@@ -17,8 +19,7 @@ class TFDNNEmbeddingModel(TFModel):
     self.b = {}
     
     # Create sparse input
-    weights = tf.cast(tf.ones([embed_shape[0]]), tf.int64)
-    sparse_input = tf.SparseTensor(self.inputs['x'], weights, self.inputs['x_shape'])
+    sparse_input = tf.SparseTensor(indices=self.inputs['x-indices'], values=self.inputs['x-values'], dense_shape=self.inputs['x-shape'])
     
     # Look up embeddings from one hot encodings
     self.embed_input = tf.nn.embedding_lookup_sparse(self.inputs['embed'], sparse_input, None, combiner=combiner)
