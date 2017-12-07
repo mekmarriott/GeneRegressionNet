@@ -1,18 +1,16 @@
 import tensorflow as tf
 import numpy as np
-from models.dnn_embed import TFDNNEmbeddingModel
+from models.dnn_embed_double import TFDNNDoubleEmbeddingModel
 import training_utils
 
-ALPHAS = {'gbm': 0.001, 'luad': 0.0003, 'lusc': 0.001}
-CANCERS = ['lusc']
+ALPHAS = {'gbm': 0.000075, 'luad': 0.001, 'lusc': 0.0011}
+CANCERS = ['gbm']
 DATA_DIR = 'data/patient' # switch to data/dummy_patient if you don't have access to patient data
 RUN_DIR = 'output/loss_history'
 SEED = 0
-NUM_ITERATIONS = 5000
-EMBEDDING = 'embedding_gene_gene_interaction'
-# EMBEDDING = 'embedding_gene_coexpression'
-# EMBEDDING = 'dummy_embedding'
-LAYERS = [16, 4]
+NUM_ITERATIONS = 10000
+EMBEDDINGS = ['embedding_gene_gene_interaction','embedding_gene_coexpression']
+LAYERS = [2,2]
 ACTIVATION = 'relu'
 OPTIMIZATION = 'adam'
 COMBINER = 'mean'
@@ -27,13 +25,14 @@ if __name__ == "__main__":
     X = np.load("%s/%s/sparse.npy" % (DATA_DIR, cancer))
     Y = np.load("%s/%s/labels.npy" % (DATA_DIR, cancer))
     D = np.load("%s/%s/survival.npy" % (DATA_DIR, cancer))
-    E = np.load("%s/%s/%s.npy" % (DATA_DIR, cancer, EMBEDDING))
-    embed_shape = E.shape
+    E1 = np.load("%s/%s/%s.npy" % (DATA_DIR, cancer, EMBEDDINGS[0]))
+    E2 = np.load("%s/%s/%s.npy" % (DATA_DIR, cancer, EMBEDDINGS[1]))
+    embed1_shape, embed2_shape = E1.shape, E2.shape
     dataset = training_utils.train_test_split({'x': X, 'y': Y, 'd': D}, split=0.8, sparse_keys=['x'])
     print("Dataset contains the following:")
     for key in dataset:
       print(key, dataset[key].shape)
-    print("Embedding is size: ", E.shape)
+    print("Embedding is size: ", E1.shape, E2.shape)
     train_feed = {
       key.split('_')[0] : dataset[key]
       for key in dataset if 'train' in key
@@ -43,13 +42,15 @@ if __name__ == "__main__":
       for key in dataset if 'test' in key
     }
 
-    train_feed['embed'] = E
-    test_feed['embed'] = E
+    train_feed['embed1'] = E1
+    train_feed['embed2'] = E2
+    test_feed['embed1'] = E1
+    test_feed['embed2'] = E2
     print("*"*40)
 
-    print("Testing custom loss on DNN Embedding Tensorflow Model using %s" % EMBEDDING)
+    print("Testing custom loss on DNN Embedding Tensorflow Model using %s" % str(EMBEDDINGS))
     loss_history = []
-    m = TFDNNEmbeddingModel(embed_shape, alpha=ALPHAS[cancer], combiner=COMBINER, layer_dims=LAYERS, activation=ACTIVATION, opt=OPTIMIZATION)
+    m = TFDNNDoubleEmbeddingModel(embed1_shape, embed2_shape, alpha=ALPHAS[cancer], combiner=COMBINER, layer_dims=LAYERS, activation=ACTIVATION, opt=OPTIMIZATION)
     m.initialize()
     for i in range(int(NUM_ITERATIONS/100)):
       m.train(train_feed, num_iterations=100, debug=False)
@@ -57,6 +58,3 @@ if __name__ == "__main__":
       embed_test_loss = m.test(test_feed)
       loss_history.append(np.array([i,embed_train_loss, embed_test_loss]))
       print("DNN Embedding Model train loss is %.6f and test loss is %.6f" % (embed_train_loss, embed_test_loss))
-
-    # Save loss history data under descriptive name
-    np.save('%s/%s/%s_layers-%s_%s_%s_%s_it-%d_alpha-%s' % (RUN_DIR, cancer, EMBEDDING, '-'.join([str(l) for l in LAYERS]), ACTIVATION, OPTIMIZATION, COMBINER, NUM_ITERATIONS, str(ALPHAS[cancer])), loss_history)

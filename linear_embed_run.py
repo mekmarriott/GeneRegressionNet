@@ -3,18 +3,17 @@ import numpy as np
 from models.dnn_embed import TFDNNEmbeddingModel
 import training_utils
 
-ALPHAS = {'gbm': 0.001, 'luad': 0.0003, 'lusc': 0.001}
+ALPHAS = {'gbm': 0.05, 'luad': 0.08, 'lusc': 0.1}
 CANCERS = ['lusc']
 DATA_DIR = 'data/patient' # switch to data/dummy_patient if you don't have access to patient data
-RUN_DIR = 'output/loss_history'
 SEED = 0
-NUM_ITERATIONS = 5000
+NUM_ITERATIONS = 30000
 EMBEDDING = 'embedding_gene_gene_interaction'
 # EMBEDDING = 'embedding_gene_coexpression'
 # EMBEDDING = 'dummy_embedding'
-LAYERS = [16, 4]
-ACTIVATION = 'relu'
-OPTIMIZATION = 'adam'
+LAYERS = []
+ACTIVATION = None
+OPTIMIZATION = None
 COMBINER = 'mean'
 
 if __name__ == "__main__":
@@ -48,15 +47,10 @@ if __name__ == "__main__":
     print("*"*40)
 
     print("Testing custom loss on DNN Embedding Tensorflow Model using %s" % EMBEDDING)
-    loss_history = []
     m = TFDNNEmbeddingModel(embed_shape, alpha=ALPHAS[cancer], combiner=COMBINER, layer_dims=LAYERS, activation=ACTIVATION, opt=OPTIMIZATION)
     m.initialize()
     for i in range(int(NUM_ITERATIONS/100)):
       m.train(train_feed, num_iterations=100, debug=False)
       embed_train_loss = m.test(train_feed)
       embed_test_loss = m.test(test_feed)
-      loss_history.append(np.array([i,embed_train_loss, embed_test_loss]))
       print("DNN Embedding Model train loss is %.6f and test loss is %.6f" % (embed_train_loss, embed_test_loss))
-
-    # Save loss history data under descriptive name
-    np.save('%s/%s/%s_layers-%s_%s_%s_%s_it-%d_alpha-%s' % (RUN_DIR, cancer, EMBEDDING, '-'.join([str(l) for l in LAYERS]), ACTIVATION, OPTIMIZATION, COMBINER, NUM_ITERATIONS, str(ALPHAS[cancer])), loss_history)

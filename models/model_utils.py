@@ -4,9 +4,9 @@ def optimization_fn(opt, alpha=0.001):
   if opt == 'sgd' or opt is None:
     return tf.train.GradientDescentOptimizer(alpha)
   elif opt == 'adam':
-    return tf.train.GradientDescentOptimizer(alpha)
-  elif top == 'ada':
-    return tf.train.GradientDescentOptimizer(alpha)
+    return tf.train.AdamOptimizer(alpha)
+  elif opt == 'ada':
+    return tf.train.AdagradOptimizer(alpha)
   else:
     raise ValueError("Optimization %s not recognized!" % opt)
 

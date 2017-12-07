@@ -2,8 +2,8 @@ import numpy as np
 import data_utils
 
 WRITE_DATA_DIR = "patient"
+CANCERS = ['gbm', 'luad', 'lusc']
 EMBEDDING_DATA_PATH = "embeddings"
-CANCERS = ['gbm']
 EMBEDDINGS = ['embedding_disease', 'embedding_gene_coexpression', 'embedding_gene_gene_interaction']
 
 if __name__ == "__main__":
@@ -41,9 +41,9 @@ if __name__ == "__main__":
       standard_to_custom[name_to_standard[gene_name]] = i
     print("Total number of genes that had no mapping from patient mutation -> standardized gene id is %d" % num_non_translatable)
 
-  # Take patient -> standardized gene id and create + save embeddings for all of our gene embeddings
-  for embedding in EMBEDDINGS:
-    print("Creating embedding for %s" % embedding)
-    embed_mat, oov = data_utils.create_reduced_embeddings(embedding, standard_to_custom, genes)
-    print("Number of OOV elements for %s is %d" % (embedding, len(oov)))    
-    np.save('%s/%s/%s.npy' % (WRITE_DATA_DIR, cancer, embedding), embed_mat)
+    # Take patient -> standardized gene id and create + save embeddings for all of our gene embeddings
+    for embedding in EMBEDDINGS:
+      print("Creating embedding for %s" % embedding)
+      embed_mat, oov = data_utils.create_reduced_embeddings(embedding, standard_to_custom, genes)
+      print("Number of OOV elements for %s is %d" % (embedding, len(oov)))    
+      np.save('%s/%s/%s.npy' % (WRITE_DATA_DIR, cancer, embedding), embed_mat)

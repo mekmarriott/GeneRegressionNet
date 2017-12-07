@@ -6,7 +6,7 @@ NUM_FEATURES = 2000
 EMBED_SZ = 10
 WRITE_DATA_DIR = "dummy_patient"
 EMBEDDING_DATA_PATH = "embeddings"
-CANCERS = ['gbm']
+CANCERS = ['gbm', 'luad', 'lusc']
 
 for cancer in CANCERS:
   print("Creating dummy patient data for cancer %s" % cancer)

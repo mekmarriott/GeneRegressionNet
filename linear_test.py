@@ -5,7 +5,8 @@ from sklearn import metrics
 from models import model
 import training_utils
 
-CANCERS = ['gbm']
+CANCERS = ['gbm', 'luad', 'lusc']
+ALPHAS = {'gbm': 0.5, 'luad': 0.085, 'lusc': 0.05}
 DATA_DIR = 'data/patient' # switch to data/dummy_patient if you don't have access to patient data
 SEED = 0
 NUM_ITERATIONS = 2000
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     
     print("*"*40)
     print("Testing regular loss on Tensorflow Model")
-    m = model.TFModel(num_features, alpha=0.5)
+    m = model.TFModel(num_features, alpha=ALPHAS[cancer])
     m.initialize()
     m.train(train_feed, num_iterations=NUM_ITERATIONS, debug=True)
     tf_train_loss = m.test(train_feed)

@@ -12,7 +12,9 @@ def sparse_reorder_split(m, new_order, split_idx):
     idx_to_values[new_order_idx[0]].append(m[i][1])
   for i in range(len(new_order)):
     values = idx_to_values[new_order[i]]
-    assert len(values) > 0, "There is no data for patient at index %d" % new_order[i]
+    if len(values) == 0:
+      print("There is no data for patient at index %d" % new_order[i])
+      continue
     if i < split_idx:
       train_indices.extend([np.array([i])]*len(values))
       train_values.extend(values)

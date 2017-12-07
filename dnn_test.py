@@ -4,10 +4,14 @@ from models.linear import TFLinearModel
 from models.dnn import TFDNNModel
 import training_utils
 
-CANCERS = ['gbm']
+CANCERS = ['gbm', 'luad', 'lusc']
+ALPHAS = {'gbm': 0.5, 'luad': 0.085, 'lusc': 0.15}
 DATA_DIR = 'data/patient' # switch to data/dummy_patient if you don't have access to patient data
 SEED = 0
 NUM_ITERATIONS = 2000
+LAYERS = []
+OPTIMIZATION = 'sgd'
+ACTIVATION = None
 
 if __name__ == "__main__":
 
@@ -37,16 +41,17 @@ if __name__ == "__main__":
     
     # Check that TFLinearModel is the same as TFDNNModel with no layer_input and overfits (training loss -> 0, test loss > training loss)
     print("Testing custom loss on Linear Tensorflow Model")
-    m = TFLinearModel(num_features, alpha=0.5)
+    m = TFLinearModel(num_features, alpha=ALPHAS[cancer])
     m.initialize()
     m.train(train_feed, num_iterations=NUM_ITERATIONS, debug=True)
     linear_train_loss = m.test(train_feed)
     linear_test_loss = m.test(test_feed)
     print("Linear TFModel train loss is %.6f and test loss is %.6f" % (linear_train_loss, linear_test_loss))
+    
     # Check that TFDNNModel overfits (training loss -> 0, test loss > training loss)
     print("*"*40)
     print("Testing custom loss on DNN no layer input Tensorflow Model")
-    m = TFDNNModel(num_features, alpha=0.5)
+    m = TFDNNModel(num_features, activation=ACTIVATION, alpha=ALPHAS[cancer], layer_dims=LAYERS, opt=OPTIMIZATION)
     m.initialize()
     m.train(train_feed, num_iterations=NUM_ITERATIONS, debug=True)
     dnn_train_loss = m.test(train_feed)
@@ -54,7 +59,7 @@ if __name__ == "__main__":
     print("DNN TFModel train loss is %.6f and test loss is %.6f" % (dnn_train_loss, dnn_test_loss))
 
     print("*"*40)
-    if abs(linear_train_loss - dnn_train_loss) < 1e-10 and linear_test_loss > linear_train_loss and dnn_test_loss > dnn_train_loss:
+    if abs(linear_train_loss - dnn_train_loss) < 1e-6 and linear_test_loss > linear_train_loss and dnn_test_loss > dnn_train_loss:
       print("PASS: Linear and DNN-linear models achieved same (zero) training error and overfit")
     else:
       print("FAIL: Linear and DNN-linear models did not behave as expected")
