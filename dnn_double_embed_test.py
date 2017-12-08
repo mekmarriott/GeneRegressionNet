@@ -14,6 +14,7 @@ LAYERS = [2,2]
 ACTIVATION = 'relu'
 OPTIMIZATION = 'adam'
 COMBINER = 'mean'
+SURVIVAL = 'cox'
 
 if __name__ == "__main__":
 
@@ -28,6 +29,9 @@ if __name__ == "__main__":
     E1 = np.load("%s/%s/%s.npy" % (DATA_DIR, cancer, EMBEDDINGS[0]))
     E2 = np.load("%s/%s/%s.npy" % (DATA_DIR, cancer, EMBEDDINGS[1]))
     embed1_shape, embed2_shape = E1.shape, E2.shape
+    if SURVIVAL == 'cox':
+      Y = training_utils.discretize_label(Y, D)
+    time_buckets = Y.shape[1]
     dataset = training_utils.train_test_split({'x': X, 'y': Y, 'd': D}, split=0.8, sparse_keys=['x'])
     print("Dataset contains the following:")
     for key in dataset:
@@ -50,7 +54,7 @@ if __name__ == "__main__":
 
     print("Testing custom loss on DNN Embedding Tensorflow Model using %s" % str(EMBEDDINGS))
     loss_history = []
-    m = TFDNNDoubleEmbeddingModel(embed1_shape, embed2_shape, alpha=ALPHAS[cancer], combiner=COMBINER, layer_dims=LAYERS, activation=ACTIVATION, opt=OPTIMIZATION)
+    m = TFDNNDoubleEmbeddingModel(embed1_shape, embed2_shape, alpha=ALPHAS[cancer], combiner=COMBINER, layer_dims=LAYERS, loss=SURVIVAL, activation=ACTIVATION, opt=OPTIMIZATION, output_sz=time_buckets)
     m.initialize()
     for i in range(int(NUM_ITERATIONS/100)):
       m.train(train_feed, num_iterations=100, debug=False)

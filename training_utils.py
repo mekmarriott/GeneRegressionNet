@@ -62,3 +62,14 @@ def feature_normalize(dataset):
     mu = np.mean(dataset,axis=0)
     sigma = np.std(dataset,axis=0)
     return (dataset - mu)/sigma  
+
+def discretize_label(labels, survival, step=1.0):
+    assert labels.shape == survival.shape, "Labels and survival vectors must be same shape!"
+    result = []
+    vec_sz = int(max(labels)) + 1
+    for i in range(labels.shape[0]):
+      y = np.zeros(vec_sz)
+      y[int(labels[i])] = float(survival[i]) # 0 if alive, 1 if dead
+      result.append(y)
+    return np.array(result)
+

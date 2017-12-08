@@ -4,7 +4,7 @@ import tensorflow as tf
 from models.model import TFModel
 
 class TFDNNEmbeddingModel(TFModel):
-  def __init__(self, embed_shape, alpha=0.001, layer_dims=[], combiner=None, opt='sgd', activation=None):
+  def __init__(self, embed_shape, alpha=0.001, layer_dims=[], loss='normal', combiner=None, opt='sgd', output_sz=1, activation=None):
     # Inherit all self attributes
     TFModel.__init__(self, embed_shape[1], alpha=alpha)
     del self.inputs['x']
@@ -12,9 +12,10 @@ class TFDNNEmbeddingModel(TFModel):
     self.inputs['x-shape'] = tf.placeholder(tf.int64, [1]) # the number of indices
     self.inputs['x-values'] = tf.placeholder(tf.int64, [None]) # the number of values correpsonding to x-indices
     self.inputs['d'] = tf.placeholder(tf.float32, [None, 1])
-    self.inputs['embed'] = tf.placeholder(tf.float32, embed_shape) 
+    self.inputs['embed'] = tf.placeholder(tf.float32, embed_shape)
+    self.inputs['y'] = tf.placeholder(tf.float32, [None, output_sz]) 
     
-    layers = [embed_shape[1]] + layer_dims + [1]
+    layers = [embed_shape[1]] + layer_dims + [output_sz]
     self.W = {}
     self.b = {}
     
@@ -34,14 +35,16 @@ class TFDNNEmbeddingModel(TFModel):
       self.layer_inputs[i+1] = model_utils.activation_fn(activation)(self.layer_inputs[i+1])
 
     self.pred = self.layer_inputs[len(self.layer_inputs)-1]
-    # Survival loss - if the person is alive (1-d = 1) AND the prediction is greater than the label, apply no loss. Otherwise apply L2 loss.
-    survival_loss = tf.square(tf.maximum(self.inputs['y']-self.pred, 0))
-    # Non-survival loss - if the person is dead (d = 1) apply L2 loss
-    non_survival_loss = tf.square(self.inputs['y']-self.pred)
-    # Restructure loss as a function of 'd', survival
-    if sys.version_info.major > 2:
-      loss = tf.multiply(1-self.inputs['d'], survival_loss) + tf.multiply(self.inputs['d'], non_survival_loss)
-    else:
-      loss = tf.mul(1-self.inputs['d'], survival_loss) + tf.mul(self.inputs['d'], non_survival_loss)
-    self.loss = tf.reduce_mean(loss)
+    if loss == 'normal':
+      # Survival loss - if the person is alive (1-d = 1) AND the prediction is greater than the label, apply no loss. Otherwise apply L2 loss.
+      survival_loss = tf.square(tf.maximum(self.inputs['y']-self.pred, 0))
+      # Non-survival loss - if the person is dead (d = 1) apply L2 loss
+      non_survival_loss = tf.square(self.inputs['y']-self.pred)
+      if sys.version_info.major > 2:
+        loss = tf.multiply(1-self.inputs['d'], survival_loss) + tf.multiply(self.inputs['d'], non_survival_loss)
+      else:
+        loss = tf.mul(1-self.inputs['d'], survival_loss) + tf.mul(self.inputs['d'], non_survival_loss)
+      self.loss = tf.reduce_mean(loss)
+    elif loss == 'cox':
+      self.loss = tf.losses.softmax_cross_entropy(self.inputs['y'], self.pred)
     self.op = model_utils.optimization_fn(opt, alpha)

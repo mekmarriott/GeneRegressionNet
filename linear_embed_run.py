@@ -15,6 +15,7 @@ LAYERS = []
 ACTIVATION = None
 OPTIMIZATION = None
 COMBINER = 'mean'
+SURVIVAL = 'cox'
 
 if __name__ == "__main__":
 
@@ -28,6 +29,10 @@ if __name__ == "__main__":
     D = np.load("%s/%s/survival.npy" % (DATA_DIR, cancer))
     E = np.load("%s/%s/%s.npy" % (DATA_DIR, cancer, EMBEDDING))
     embed_shape = E.shape
+    if SURVIVAL == 'cox':
+      Y = training_utils.discretize_label(Y, D)
+    time_buckets = Y.shape[1]
+
     dataset = training_utils.train_test_split({'x': X, 'y': Y, 'd': D}, split=0.8, sparse_keys=['x'])
     print("Dataset contains the following:")
     for key in dataset:
@@ -47,7 +52,7 @@ if __name__ == "__main__":
     print("*"*40)
 
     print("Testing custom loss on DNN Embedding Tensorflow Model using %s" % EMBEDDING)
-    m = TFDNNEmbeddingModel(embed_shape, alpha=ALPHAS[cancer], combiner=COMBINER, layer_dims=LAYERS, activation=ACTIVATION, opt=OPTIMIZATION)
+    m = TFDNNEmbeddingModel(embed_shape, alpha=ALPHAS[cancer], combiner=COMBINER, layer_dims=LAYERS, loss=SURVIVAL, activation=ACTIVATION, opt=OPTIMIZATION, output_sz=time_buckets)
     m.initialize()
     for i in range(int(NUM_ITERATIONS/100)):
       m.train(train_feed, num_iterations=100, debug=False)

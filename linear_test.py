@@ -33,7 +33,7 @@ if __name__ == "__main__":
       key.split('_')[0] : dataset[key]
       for key in dataset if 'test' in key
     }
-    
+        
     print("*"*40)
     print("Testing regular loss on Tensorflow Model")
     m = model.TFModel(num_features, alpha=ALPHAS[cancer])

@@ -18,3 +18,4 @@ class TFLinearModel(TFModel):
     else:
       loss = tf.mul(1-self.inputs['d'], survival_loss) + tf.mul(self.inputs['d'], non_survival_loss)
     self.loss = tf.reduce_mean(loss)
+      
