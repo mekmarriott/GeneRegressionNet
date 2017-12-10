@@ -4,7 +4,7 @@ import tensorflow as tf
 from models.model import TFModel
 
 class TFDNNDoubleEmbeddingModel(TFModel):
-  def __init__(self, embed1_shape, embed2_shape, alpha=0.001, layer_dims=[], loss='normal', combiner=None, opt='sgd', output_sz=1, activation=None):
+  def __init__(self, embed1_shape, embed2_shape, alpha=0.001, layer_dims=[], loss='normal', combiner=None, opt='sgd', output_sz=1, activation=None, dropout=False):
     # Inherit all self attributes
     TFModel.__init__(self, embed1_shape[1] + embed2_shape[1], alpha=alpha)
     del self.inputs['x']
@@ -15,6 +15,8 @@ class TFDNNDoubleEmbeddingModel(TFModel):
     self.inputs['embed1'] = tf.placeholder(tf.float32, embed1_shape)
     self.inputs['embed2'] = tf.placeholder(tf.float32, embed2_shape)
     self.inputs['y'] = tf.placeholder(tf.float32, [None, output_sz])
+    if dropout:
+      self.inputs['keep_prob'] = tf.placeholder(tf.float32, [1])
 
     layers = [embed1_shape[1] + embed2_shape[1]] + layer_dims + [output_sz]
     self.W = {}
@@ -36,6 +38,8 @@ class TFDNNDoubleEmbeddingModel(TFModel):
       self.b[i] = tf.Variable(tf.random_normal([layers[i+1]]))
       self.layer_inputs[i+1] = tf.add(tf.matmul(self.layer_inputs[i], self.W[i]), self.b[i])
       self.layer_inputs[i+1] = model_utils.activation_fn(activation)(self.layer_inputs[i+1])
+      if dropout and i < len(layers) - 2:
+        self.layer_inputs[i+1] = tf.layers.dropout(self.layer_inputs[i+1], rate=self.inputs['keep_prob'])
 
     self.pred = self.layer_inputs[len(self.layer_inputs)-1]
     if loss == 'normal':
@@ -48,6 +52,6 @@ class TFDNNDoubleEmbeddingModel(TFModel):
       else:
         loss = tf.mul(1-self.inputs['d'], survival_loss) + tf.mul(self.inputs['d'], non_survival_loss)
       self.loss = tf.reduce_mean(loss)
-    elif loss == 'cox':
+    elif loss == 'softmax':
       self.loss = tf.losses.softmax_cross_entropy(self.inputs['y'], self.pred)
     self.op = model_utils.optimization_fn(opt, alpha)

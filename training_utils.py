@@ -104,10 +104,12 @@ def feature_normalize(dataset):
 def discretize_label(labels, survival, step=1.0):
     assert labels.shape == survival.shape, "Labels and survival vectors must be same shape!"
     result = []
-    vec_sz = int(max(labels)) + 1
+    vec_sz = int(max(labels)) + 1 + 1 # Add an extra label for alive + over prediction
     for i in range(labels.shape[0]):
       y = np.zeros(vec_sz)
       y[int(labels[i])] = float(survival[i]) # 0 if alive, 1 if dead
+      if survival[i] == 0:
+        y[-1] = 1.0 # set the last label, which is designated for survival, as 1
       result.append(y)
     return np.array(result)
 
