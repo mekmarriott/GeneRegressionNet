@@ -1,0 +1,44 @@
+GBM, embedding_gene_gene_interaction
+python dnn_embed_test.py -cancer gbm -layers 2-2 -alpha 0.005 -debug_steps 20 -iterations 500 -dropout 0.9 -regularization 0.4 -mode test
+Epoch 480 train loss is 209.561218 and test loss is 85.630608
+CROSS VALIDATION PERFORMANCE: train is 200.785583 and tests is 204.858765
+
+GBM, embedding_gene_coexpression
+python dnn_embed_test.py -cancer gbm -layers 4-4 -alpha 0.2 -debug_steps 20 -iterations 1000 -dropout 0.7 -regularization 1.0 -mode test
+Epoch 980 train loss is 199.022263 and test loss is 84.626213
+CROSS VALIDATION PERFORMANCE: train is 198.691772 and tests is 200.035583
+
+GBM, double
+python dnn_double_embed_test.py -cancer gbm -layers 16-4 -alpha 0.05 -debug_steps 20 -iterations 1000 -dropout 0.7 -regularization 1.0 -mode test
+Epoch 980 train loss is 199.016129 and test loss is 84.611382
+CROSS VALIDATION PERFORMANCE: train is 199.096527 and tests is 200.313797
+
+LUAD, embedding_gene_gene_interaction
+python dnn_embed_test.py -cancer luad -layers 4-4 -alpha 0.09 -debug_steps 100 -iterations 2500 -dropout 0.9 -regularization 5.0
+CROSS VALIDATION PERFORMANCE: train is 713.079590 and tests is 734.460449
+Epoch 2400 train loss is 715.521057 and test loss is 937.450745
+
+LUAD, embedding_gene_coexpression
+python dnn_embed_test.py -cancer luad -layers 8-4 -alpha 0.05 -debug_steps 20 -iterations 500 -dropout 0.9 -regularization 5.0
+CROSS VALIDATION PERFORMANCE: train is 726.639771 and tests is 747.908630
+Epoch 480 train loss is 736.351074 and test loss is 964.572998
+
+LUAD, double
+python dnn_double_embed_test.py -cancer luad -layers 4-2 -alpha 0.09 -debug_steps 100 -iterations 3000 -dropout 0.8 -regularization 3.0
+CROSS VALIDATION PERFORMANCE: train is 710.473999 and tests is 730.564514
+Epoch 2900 train loss is 714.243835 and test loss is 935.889893
+
+LUSC, embedding_gene_gene_interaction
+python dnn_embed_test.py -cancer lusc -layers 4-4-4 -alpha 0.2 -debug_steps 100 -iterations 3000 -dropout 0.9 -regularization 10.0
+CROSS VALIDATION PERFORMANCE: train is 994.565063 and tests is 999.313843
+Epoch 2900 train loss is 998.328369 and test loss is 1066.909302
+
+LUSC, embedding_gene_coexpression
+python dnn_embed_test.py -cancer lusc -layers 8-4-4 -alpha 0.3 -debug_steps 100 -iterations 1500 -dropout 0.9 -regularization 20.0
+CROSS VALIDATION PERFORMANCE: train is 999.688416 and tests is 999.611633
+Epoch 1400 train loss is 997.538635 and test loss is 1066.036865
+
+LUSC, double
+python dnn_double_embed_test.py -cancer lusc -layers 4-4-2 -alpha 0.5 -debug_steps 50 -iterations 2000 -dropout 0.8 -regularization 10.0 -mode test
+CROSS VALIDATION PERFORMANCE: train is 996.197998 and tests is 1003.418701
+Epoch 1950 train loss is 998.374573 and test loss is 1061.988892

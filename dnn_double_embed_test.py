@@ -3,6 +3,7 @@ import numpy as np
 import argparse
 from models.dnn_embed_double import TFDNNDoubleEmbeddingModel
 import training_utils
+import visualization_utils
 
 ALPHAS = {'gbm': 0.000075, 'luad': 0.001, 'lusc': 0.0011}
 CANCERS = ['gbm']
@@ -27,6 +28,8 @@ parser.add_argument('-seed', metavar='s', nargs='?', type=int, default=0)
 parser.add_argument('-debug_steps', metavar='ds', nargs='?', type=int, default=100)
 parser.add_argument('-cv_split', metavar='cs', nargs='?', type=float, default=0.8)
 parser.add_argument('-dropout', metavar='d', nargs='?', type=float)
+parser.add_argument('-regularization', metavar='r', nargs='?', type=float, default=0.0)
+parser.add_argument('-visualize_performance', metavar='vp', nargs='?', type=bool, default=False)
 
 if __name__ == "__main__":
   
@@ -72,15 +75,19 @@ if __name__ == "__main__":
       datasets = training_utils.cv_split(data_feed, partitions=args.cv_fold, sparse_keys=['x'])
     elif args.mode == 'test':
       print("TESTING")
-      datasets = [data_set]
-
+      datasets = [dataset]
+    
     for d in datasets:
+      tf.reset_default_graph()
+      print("Run dataset contains the following:")
+      for key in d:
+        print(key, d[key].shape)
       train_feed = {
-        key.split('_')[0] : dataset[key]
+        key.split('_')[0] : d[key]
         for key in dataset if 'train' in key
       }
       test_feed = {
-        key.split('_')[0] : dataset[key]
+        key.split('_')[0] : d[key]
         for key in dataset if 'test' in key
       }
       train_feed['embed1'] = E1
@@ -95,7 +102,7 @@ if __name__ == "__main__":
       print("Testing custom loss on DNN Embedding Tensorflow Model using %s" % str(EMBEDDINGS))
       if args.alpha is None:
         args.alpha = ALPHAS[cancer]
-      m = TFDNNDoubleEmbeddingModel(embed1_shape, embed2_shape, alpha=args.alpha, combiner=args.combiner, dropout=args.dropout, layer_dims=args.layers, loss=args.loss, activation=args.activation, opt=args.optimization, output_sz=output_sz)
+      m = TFDNNDoubleEmbeddingModel(embed1_shape, embed2_shape, alpha=args.alpha, regularization=args.regularization, combiner=args.combiner, dropout=args.dropout, layer_dims=args.layers, loss=args.loss, activation=args.activation, opt=args.optimization, output_sz=output_sz)
       m.initialize()
       for i in range(int(args.iterations/args.debug_steps)):
         m.train(train_feed, num_iterations=args.debug_steps, debug=False)
@@ -104,6 +111,8 @@ if __name__ == "__main__":
         print("Epoch %d train loss is %.6f and test loss is %.6f" % (i*args.debug_steps, embed_train_loss, embed_test_loss))
       performance.append((embed_train_loss, embed_test_loss))
 
+      if args.visualize_performance:
+        visualization_utils.plot_train_test_performance(train_feed, test_feed, m.predict(train_feed), m.predict(test_feed), title='Coexpression-Embedded DNN Predictions vs. Ground Truth for GBM')
       # Give summary of loss, if CV
       if args.mode == 'cv':
         print("CROSS VALIDATION PERFORMANCE: train is %.6f and tests is %.6f" % (np.mean([x[0] for x in performance]), np.mean([x[1] for x in performance])))

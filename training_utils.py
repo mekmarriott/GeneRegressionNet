@@ -20,23 +20,21 @@ def sparse_reorder_split(m, new_order, split_range):
       print("There is no data for patient at index %d" % new_order[i])
       continue
     if i >= split_range[0] and i < split_range[1]:
-      train_indices.extend([np.array([i-split_range[0]])]*len(values))
-      train_values.extend(values)
+      test_indices.extend([np.array([i-split_range[0]])]*len(values))
+      test_values.extend(values)
     else:
       mod_i = i
       if i >= split_range[1]:
-        mod_i -= split_range[1] 
-      test_indices.extend([np.array([mod_i])]*len(values))
-      test_values.extend(values)
+        mod_i = i - (split_range[1] - split_range[0])
+      train_indices.extend([np.array([mod_i])]*len(values))
+      train_values.extend(values)
   return np.array(train_indices), np.array(train_values), np.array(test_indices), np.array(test_values)
 
 def flatten_nested_list(d):
-  print(d.shape)
   result = []
   for i,row in enumerate(d):
     _row = [[i, x] for x in row]
     result.extend(_row)
-  print(len(result))
   return np.array(result)
 
 def train_test_split(d, split=0.7, sparse_keys=[]):
@@ -56,7 +54,7 @@ def train_test_split(d, split=0.7, sparse_keys=[]):
     for key in d:
       x = d[key]
       if key in sparse_keys:
-        result[key + "-indices_train"], result[key + "-values_train"], result[key + "-indices_test"], result[key + "-values_test"] = sparse_reorder_split(x, indices, [0,split_idx])
+        result[key + "-indices_train"], result[key + "-values_train"], result[key + "-indices_test"], result[key + "-values_test"] = sparse_reorder_split(x, indices, [split_idx, N])
         result[key + "-shape_train"] = np.array(result[key + "-values_train"].shape)
         result[key + "-shape_test"] = np.array(result[key + "-values_test"].shape)
         continue
@@ -82,8 +80,8 @@ def cv_split(d, partitions=5, sparse_keys=[]):
     assert N > 0, "Must have at least one key in the dataset with non zero, non sparse data"
     assert N > partitions, "Must have at least as many elements in dataset as partitions"
     indices = np.random.permutation(N)
-    split_indices = [int(N*i/(partitions-1.0)) for i in range(partitions)]
-    split_indices = [0] + split_indices + [N]
+    split_indices = [int(N*i/(partitions)) for i in range(partitions)]
+    split_indices = split_indices + [N]
     result = []
     for partition_idx in range(partitions):
         _d = {}
@@ -92,7 +90,8 @@ def cv_split(d, partitions=5, sparse_keys=[]):
                 _d[key + "-indices_train"], _d[key + "-values_train"], _d[key + "-indices_test"], _d[key + "-values_test"] = sparse_reorder_split(d[key], indices, [split_indices[partition_idx], split_indices[partition_idx+1]])
                 _d[key + "-shape_train"], _d[key + "-shape_test"] = np.array(_d[key + "-values_train"].shape), np.array(_d[key + "-values_test"].shape)
             else:
-                _d[key + "_train"], _d[key + "_test"] = d[key][indices[split_indices[partition_idx]:split_indices[partition_idx+1]]], np.append(d[key][indices[:split_indices[partition_idx]]], d[key][indices[split_indices[partition_idx+1]:]])
+                _d[key + "_test"]= d[key][indices[split_indices[partition_idx]:split_indices[partition_idx+1]]]
+                _d[key + "_train"] = np.expand_dims(np.append(d[key][indices[:split_indices[partition_idx]]], d[key][indices[split_indices[partition_idx+1]:]]), axis=-1)
         result.append(_d)                
     return result
 

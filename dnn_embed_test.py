@@ -3,6 +3,7 @@ import numpy as np
 import argparse
 from models.dnn_embed import TFDNNEmbeddingModel
 import training_utils
+import visualization_utils
 
 ALPHAS = {'gbm': 0.001, 'luad': 0.0003, 'lusc': 0.001}
 CANCERS = ['lusc']
@@ -27,6 +28,8 @@ parser.add_argument('-seed', metavar='s', nargs='?', type=int, default=0)
 parser.add_argument('-debug_steps', metavar='ds', nargs='?', type=int, default=100)
 parser.add_argument('-cv_split', metavar='cs', nargs='?', type=float, default=0.8)
 parser.add_argument('-dropout', metavar='d', nargs='?', type=float)
+parser.add_argument('-regularization', metavar='r', nargs='?', type=float, default=0.0)
+parser.add_argument('-visualize_performance', metavar='vp', nargs='?', type=bool, default=False)
 
 if __name__ == "__main__":
 
@@ -54,7 +57,7 @@ if __name__ == "__main__":
     output_sz = Y.shape[1]
     
     dataset = training_utils.train_test_split({'x': X, 'y': Y, 'd': D}, split=args.cv_split, sparse_keys=['x'])
-    print("Dataset contains the following:")
+    print("Overall Dataset contains the following:")
     for key in dataset:
       print(key, dataset[key].shape)
     print("Embedding is size: ", E.shape)
@@ -66,19 +69,27 @@ if __name__ == "__main__":
         key.split('_')[0] : dataset[key]
         for key in dataset if 'train' in key
       }
+      print "DATAFEED HAS"
+      for key in data_feed:
+        print(key, data_feed[key].shape)
       datasets = training_utils.cv_split(data_feed, partitions=args.cv_fold, sparse_keys=['x'])
     elif args.mode == 'test':
       print("TESTING")
-      datasets = [data_set]
+      datasets = [dataset]
  
     for d in datasets:
+      tf.reset_default_graph()
+      print("Run dataset contains the following:")
+      for key in d:
+        print(key, d[key].shape)
+      print("Embedding is size: ", E.shape)
       train_feed = {
-        key.split('_')[0] : dataset[key]
-        for key in dataset if 'train' in key
+        key.split('_')[0] : d[key]
+        for key in d if 'train' in key
       }
       test_feed = {
-        key.split('_')[0] : dataset[key]
-        for key in dataset if 'test' in key
+        key.split('_')[0] : d[key]
+        for key in d if 'test' in key
       }
       train_feed['embed'] = E
       test_feed['embed'] = E
@@ -90,7 +101,7 @@ if __name__ == "__main__":
       print("Testing custom loss on DNN Embedding Tensorflow Model using %s" % EMBEDDING)
       if args.alpha is None:
         args.alpha = ALPHAS[cancer]
-      m = TFDNNEmbeddingModel(embed_shape, alpha=args.alpha, combiner=args.combiner, dropout=args.dropout, layer_dims=args.layers, loss=args.loss, activation=args.activation, opt=args.optimization, output_sz=output_sz)
+      m = TFDNNEmbeddingModel(embed_shape, alpha=args.alpha, regularization=args.regularization, combiner=args.combiner, dropout=args.dropout, layer_dims=args.layers, loss=args.loss, activation=args.activation, opt=args.optimization, output_sz=output_sz)
       m.initialize()
       for i in range(int(args.iterations/args.debug_steps)):
         m.train(train_feed, num_iterations=args.debug_steps, debug=False)
@@ -99,6 +110,14 @@ if __name__ == "__main__":
         print("Epoch %d train loss is %.6f and test loss is %.6f" % (i*args.debug_steps, embed_train_loss, embed_test_loss))
       performance.append((embed_train_loss, embed_test_loss))
 
+      # Look at weights for any particular gene of interest
+      # W, b = m.get_params(train_feed)
+      # print "W IS ", W
+      # print "B is ", b
+      if args.visualize_performance:
+        # visualization_utils.plot_performance(train_feed['y'], train_feed['d'], m.predict(train_feed), 'Linear No-Embed (Train): Predictions vs. Ground Truth')
+        # visualization_utils.plot_performance(test_feed['y'], test_feed['d'], m.predict(test_feed), 'Linear No-Embed (Test): Predictions vs. Ground Truth')
+        visualization_utils.plot_train_test_performance(train_feed, test_feed, m.predict(train_feed), m.predict(test_feed), title='Coexpression-Embedded DNN Predictions vs. Ground Truth for GBM')
 
     # Give summary of loss, if CV
     if args.mode == 'cv':

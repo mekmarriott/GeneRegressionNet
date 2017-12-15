@@ -4,7 +4,7 @@ from models.model import TFModel
 from models import model_utils
 
 class TFDNNModel(TFModel):
-  def __init__(self, num_features, alpha=0.001, layer_dims=[], loss='normal', opt='sgd', output_sz=1, activation=None):
+  def __init__(self, num_features, alpha=0.001, regularization=0.0, layer_dims=[], loss='normal', opt='sgd', output_sz=1, activation=None, dropout=False):
     # Inherit all self attributes
     TFModel.__init__(self, num_features, alpha=alpha)
     self.inputs['d'] = tf.placeholder(tf.float32, [None, 1])
@@ -34,10 +34,13 @@ class TFDNNModel(TFModel):
       survival_loss = tf.square(tf.maximum(self.inputs['y']-self.pred, 0))
       # Non-survival loss - if the person is dead (d = 1) apply L2 loss
       non_survival_loss = tf.square(self.inputs['y']-self.pred)
-      if sys.version_info.major > 2:
-        loss = tf.multiply(1-self.inputs['d'], survival_loss) + tf.multiply(self.inputs['d'], non_survival_loss)
-      else:
-        loss = tf.mul(1-self.inputs['d'], survival_loss) + tf.mul(self.inputs['d'], non_survival_loss)
+      # if sys.version_info.major > 2:
+      loss = tf.multiply(1-self.inputs['d'], survival_loss) + tf.multiply(self.inputs['d'], non_survival_loss)
+      # else:
+      #   loss = tf.mul(1-self.inputs['d'], survival_loss) + tf.mul(self.inputs['d'], non_survival_loss)
+      if regularization > 0:
+        for i in self.W:
+          loss += regularization * tf.nn.l2_loss(self.W[i])
       self.loss = tf.reduce_mean(loss)
     elif loss == 'softmax':
       self.loss = tf.losses.softmax_cross_entropy(self.inputs['y'], self.pred)
